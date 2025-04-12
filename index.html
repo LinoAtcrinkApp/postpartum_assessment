@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Stress Assessment</title>
+  <link rel="stylesheet" href="style/style.css" />
+</head>
+<body>
+  <div class="assessment-wrapper">
+    <div id="question-box">
+      <p class="progress-text">Question <span id="current-question">1</span>/<span id="total-questions">3</span></p>
+      <h2 id="question-text">Loading question...</h2>
+      <div id="options-container" class="options"></div>
+    </div>
+
+    <div id="result-box" class="hidden">
+      <h2>Your Stress Level:</h2>
+      <p id="result-text"></p>
+      <button onclick="restartAssessment()" class="btn">Retake Assessment</button>
+    </div>
+  </div>
+
+  <div id="popup" class="popup hidden">
+    <div class="popup-box">
+      <h2>🎉 You're a Rockstar!</h2>
+      <p>You just answered some deep, meaningful questions — high five! 🖐️</p>
+      <p>We’d love to send your results to your inbox. Pop in your email below:</p>
+  
+      <input type="email" id="user-email" placeholder="you@awesome.com" required />
+  
+      <label class="checkbox-label">
+        <input type="checkbox" id="consent-checkbox" />
+        Yup, Crink can totally mail me about cool stuff!
+      </label>
+  
+      
+      <button onclick="submitEmail()">Send My Results 🚀</button>
+    </div>
+  </div>
+  
+
+  <script src="js/questions.js"></script>
+  <script src="js/script.js"></script>
+
+</body>
+</html>
