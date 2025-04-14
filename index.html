@@ -8,7 +8,31 @@
 </head>
 <body>
   <div class="assessment-wrapper">
-    <div id="question-box">
+    <div id="user-info-form">
+      <h2>Welcome to the Stress Assessment</h2>
+      <p>Please provide your information to start:</p>
+      <div class="form-group">
+        <label for="user-name">Let us know your name</label>
+        <input type="text" id="user-name" placeholder="Your name" required />
+      </div>
+      <div class="form-group">
+        <label for="user-email-initial">Email also</label>
+        <input type="email" id="user-email-initial" placeholder="your.email@example.com" required />
+      </div>
+      <div class="form-group">
+        <label for="user-phone">Phone Number</label>
+        <input type="tel" id="user-phone" placeholder="Your phone number" required />
+      </div>
+      <div class="form-group checkbox-group">
+        <label class="checkbox-label">
+          <input type="checkbox" id="contact-consent" />
+          Crink can call me.
+        </label>
+      </div>
+      <button id="start-assessment" class="btn">Start Assessment</button>
+    </div>
+
+    <div id="question-box" class="hidden">
       <p class="progress-text">Question <span id="current-question">1</span>/<span id="total-questions">3</span></p>
       <h2 id="question-text">Loading question...</h2>
       <div id="options-container" class="options"></div>
