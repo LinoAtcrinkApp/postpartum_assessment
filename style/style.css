@@ -237,6 +237,8 @@ body {
   margin: 1rem 0 2rem;
 }
 
+/* Remove download-related CSS rules here */
+
 @keyframes progressAnimation {
   0% {
     background-position: 0 0;

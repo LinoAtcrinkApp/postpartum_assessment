@@ -5,7 +5,14 @@ let userData = {
   name: "",
   email: "",
   phone: "",
-  canContact: false
+  canContact: false,
+  assessmentResponses: [],
+  finalResults: {
+    score: 0,
+    stressLevel: "",
+    message: "",
+    percentage: 0
+  }
 };
 
 const questions = assessmentQuestions;
@@ -54,8 +61,8 @@ function startAssessment() {
   userData.phone = phoneInput.value.trim();
   userData.canContact = document.getElementById("contact-consent").checked;
   
-  // Save user data to Excel via backend
-  saveUserDataToExcel(userData.name, userData.email, userData.phone);
+  // Store initial data locally (don't save to Google Sheets yet)
+  storeUserDataLocally(userData.name, userData.email, userData.phone, userData.canContact);
   
   // Hide user info form and show question box
   document.getElementById("user-info-form").classList.add("hidden");
@@ -67,6 +74,28 @@ function startAssessment() {
   
   // Start the assessment
   showQuestion();
+}
+
+// Store user data locally without sending to Google Sheets
+function storeUserDataLocally(name, email, phone, canContact) {
+  // Create the data object with just the basic user information
+  const userDataObj = {
+    name: name,
+    email: email,
+    phone: phone,
+    canContact: canContact,
+    timestamp: new Date().toISOString()
+  };
+  
+  // Store locally as a backup
+  try {
+    const existingData = JSON.parse(localStorage.getItem('crinkUserData') || '[]');
+    existingData.push(userDataObj);
+    localStorage.setItem('crinkUserData', JSON.stringify(existingData));
+    console.log('User data saved to localStorage');
+  } catch (storageError) {
+    console.error('Failed to save to localStorage:', storageError);
+  }
 }
 
 function showQuestion() {
@@ -120,11 +149,16 @@ function showResult() {
     viewResultsBtn.className = "btn view-results-btn";
     viewResultsBtn.style.marginRight = "10px";
     viewResultsBtn.style.backgroundColor = "#614ad3";
-    viewResultsBtn.onclick = displayResultsDirectly;
+    viewResultsBtn.id = "skip-view-results-btn";
     
     // Add it before the existing submit button
     const existingButton = popupBox.querySelector("button");
     popupBox.insertBefore(viewResultsBtn, existingButton);
+    
+    // Add event listener to the skip button
+    document.getElementById("skip-view-results-btn").addEventListener("click", function() {
+      displayResultsDirectly();
+    });
     
     // Add some space between buttons
     const spacer = document.createElement("div");
@@ -141,6 +175,10 @@ function showResult() {
       return;
     }
     
+    // Update userData with latest values
+    userData.email = email;
+    userData.canContact = consent;
+    
     // Show a loading message
     const popupBox = document.querySelector(".popup-box");
     const originalContent = popupBox.innerHTML;
@@ -149,27 +187,29 @@ function showResult() {
       <p>Please wait while we email your results.</p>
     `;
     
-    // Prepare the results data for email
-    sendResultsEmail(email, consent)
-      .then(() => {
-        // Update popup to show success message
-        popupBox.innerHTML = `
-          <h2>Results Sent! 📧</h2>
-          <p>Check your inbox at ${email} for your stress assessment results.</p>
-          <button onclick="displayResultsDirectly()" class="btn view-results-btn">Continue to Results</button>
-        `;
-      })
-      .catch(error => {
-        console.error("Error sending email:", error);
-        popupBox.innerHTML = `
-          <h2>Oops! Something went wrong</h2>
-          <p>We couldn't send your results by email. Please try again later.</p>
-          <button onclick="displayResultsDirectly()" class="btn view-results-btn">View Results Now</button>
-        `;
+    // Calculate and store results in userData
+    calculateAndStoreResults();
+    
+    // Save complete assessment data to Google Sheets
+    saveCompleteAssessmentData(userData);
+    
+    // Simulate email sending
+    setTimeout(() => {
+      // Update popup to show success message with working continue button
+      popupBox.innerHTML = `
+        <h2>Results Sent! 📧</h2>
+        <p>Check your inbox at ${email} for your stress assessment results.</p>
+        <button id="continue-to-results" class="btn view-results-btn">Continue to Results</button>
+      `;
+      
+      // Add event listener to the new button
+      document.getElementById("continue-to-results").addEventListener("click", function() {
+        displayResultsDirectly();
       });
+    }, 1500);
   }
   
-  function sendResultsEmail(email, consent) {
+  function calculateAndStoreResults() {
     // Calculate the same results as shown in the UI
     const maxPossibleScore = totalQuestions * 4;
     
@@ -191,77 +231,47 @@ function showResult() {
       progressPercentage = Math.round((score / maxPossibleScore) * 100);
     }
     
-    // Create email data object with complete information for Excel storage
-    const emailData = {
-      name: userData.name,
-      email: email,
-      phone: userData.phone || '',
-      to: email,
-      subject: "Your Crink Stress Assessment Results",
-      stressLevel: stressLevel,
+    // Store all results data in userData object
+    userData.finalResults = {
       score: score,
-      maxScore: totalQuestions * 4,
-      percentage: progressPercentage,
+      stressLevel: stressLevel,
       message: resultMessage,
-      responses: userResponses,
-      consentToContact: consent
+      percentage: progressPercentage,
+      maxScore: totalQuestions * 4
     };
+    userData.assessmentResponses = userResponses;
     
-    // Send to backend to handle both email and Excel storage
-    return new Promise((resolve, reject) => {
-      // Simulate an API call to your backend
-      setTimeout(() => {
-        try {
-          console.log("📧 Sending data for email and Excel storage:", emailData);
-          
-          // In a real environment, this would be an actual fetch call:
-          fetch('http://localhost:3000/api/send-assessment-results', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(emailData)
-          }).then(response => {
-            if (!response.ok) throw new Error('Failed to process assessment data');
-            return response.json();
-          }).then(data => {
-            console.log('Backend response:', data);
-            resolve(data);
-          }).catch(error => {
-            console.error('Error connecting to backend:', error);
-            // Fall back to simulated success if server is not available during development
-            resolve({success: true, message: 'Simulated success (server not available)'});
-          });
-        } catch (error) {
-          console.error('Error in processing:', error);
-          reject(error);
-        }
-      }, 1500); // Simulate network delay during development
-    });
+    return userData;
   }
   
   function displayResultsDirectly() {
-    // Show results based on score
-    let resultMessage;
-    let stressLevel;
-    let progressPercentage;
+    // Get the updated consent value from the popup if it exists
+    let updatedConsent = false;
+    let updatedEmail = userData.email; // Default to stored value
     
-    // Calculate maximum possible score (total questions × max 4 points per question)
-    const maxPossibleScore = totalQuestions * 4;
+    const consentCheckbox = document.getElementById("consent-checkbox");
+    const emailInput = document.getElementById("user-email");
     
-    // Calculate stress levels based on score ranges
-    if (score <= maxPossibleScore * 0.25) { // 0-25% of max score
-      resultMessage = "You're managing stress well!";
-      stressLevel = "Low Stress";
-      progressPercentage = Math.round((score / maxPossibleScore) * 100); // Dynamic percentage based on actual score
-    } else if (score <= maxPossibleScore * 0.5) { // 26-50% of max score
-      resultMessage = "You're experiencing some stress. Try some relaxation techniques.";
-      stressLevel = "Moderate Stress";
-      progressPercentage = Math.round((score / maxPossibleScore) * 100); // Dynamic percentage based on actual score
-    } else {
-      resultMessage = "Your stress levels are elevated. Consider seeking support.";
-      stressLevel = "High Stress";
-      progressPercentage = Math.round((score / maxPossibleScore) * 100); // Dynamic percentage up to 100%
+    // Only update if elements exist (they might not if coming directly from skip button)
+    if (consentCheckbox) {
+      updatedConsent = consentCheckbox.checked;
+    }
+    
+    if (emailInput && emailInput.value) {
+      updatedEmail = emailInput.value;
+    }
+    
+    // Update userData with latest values
+    userData.email = updatedEmail;
+    userData.canContact = updatedConsent;
+    
+    // Calculate and store all results
+    calculateAndStoreResults();
+    
+    // When skipping, only save basic user data to Google Sheets
+    if (!document.getElementById("continue-to-results")) {
+      // This means we're coming from skip button, not from email submission
+      saveUserDataToExcel(userData.name, userData.email, userData.phone);
     }
     
     // Hide popup and display results in a separate "page"
@@ -275,18 +285,18 @@ function showResult() {
       document.querySelector(".assessment-wrapper").appendChild(resultsPage);
     }
     
-    // Populate the results page with fancy progress indicator
+    // Populate the results page with progress indicator (no download buttons)
     resultsPage.innerHTML = `
       <div class="results-container">
         <h2>Your Stress Assessment Results</h2>
         <div class="stress-level-display">
-          <h3>${stressLevel}</h3>
+          <h3>${userData.finalResults.stressLevel}</h3>
           <div class="progress-container">
-            <div class="progress-bar" style="width: ${progressPercentage}%"></div>
+            <div class="progress-bar" style="width: ${userData.finalResults.percentage}%"></div>
           </div>
         </div>
-        <p class="result-message">${resultMessage}</p>
-        <p class="score-display">Total Score: ${score} out of ${totalQuestions * 4}</p>
+        <p class="result-message">${userData.finalResults.message}</p>
+        <p class="score-display">Total Score: ${userData.finalResults.score} out of ${userData.finalResults.maxScore}</p>
         <button onclick="redirectToTherapy()" class="btn restart-btn">Start Therapy Now</button>
       </div>
     `;
@@ -321,54 +331,126 @@ function saveUserDataToExcel(name, email, phone) {
   const userData = {
     name: name,
     email: email,
-    phone: phone
+    phone: phone,
+    canContact: document.getElementById("contact-consent").checked,
+    timestamp: new Date().toISOString()
   };
   
-  // Try to send the data to the backend
-  // Using a Promise with timeout to handle potential connection issues
-  const timeoutDuration = 5000; // 5 seconds timeout
+  // Save to Google Sheets via Apps Script
+  saveToGoogleSheets(userData, 'user_data');
   
-  const fetchWithTimeout = (url, options, timeout) => {
-    return Promise.race([
-      fetch(url, options),
-      new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Request timed out')), timeout)
-      )
-    ]);
-  };
-  
-  // Try to save data but continue assessment flow regardless of outcome
-  fetchWithTimeout('http://localhost:3000/api/save-user-data', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(userData)
-  }, timeoutDuration)
-  .then(response => {
-    if (!response.ok) {
-      throw new Error('Failed to save user data');
-    }
-    return response.json();
-  })
-  .then(data => {
-    console.log('User data saved successfully:', data);
-  })
-  .catch(error => {
-    // Log the error but don't interrupt the assessment flow
-    console.log('User data will only be stored locally. Backend connection failed:', error.message);
-    
-    // Store the data locally as a fallback (in sessionStorage)
-    try {
-      const existingData = JSON.parse(sessionStorage.getItem('crinkUserData') || '[]');
-      existingData.push({
-        ...userData,
-        timestamp: new Date().toISOString()
-      });
-      sessionStorage.setItem('crinkUserData', JSON.stringify(existingData));
-      console.log('User data saved to session storage as fallback');
-    } catch (storageError) {
-      console.error('Failed to save to session storage:', storageError);
-    }
-  });
+  // Also store locally as a backup
+  try {
+    const existingData = JSON.parse(localStorage.getItem('crinkUserData') || '[]');
+    existingData.push(userData);
+    localStorage.setItem('crinkUserData', JSON.stringify(existingData));
+    console.log('User data saved to localStorage as backup');
+  } catch (storageError) {
+    console.error('Failed to save to localStorage:', storageError);
+  }
 }
+
+// New function to save complete assessment data
+function saveCompleteAssessmentData(completeUserData) {
+  console.log("Complete user assessment data:", completeUserData);
+  
+  // Add timestamp
+  const dataToSave = {
+    ...completeUserData,
+    timestamp: new Date().toISOString()
+  };
+  
+  // Create email data object to include with the assessment data
+  const emailData = {
+    name: dataToSave.name,
+    email: dataToSave.email,
+    phone: dataToSave.phone || '',
+    to: dataToSave.email,
+    subject: "Your Crink Stress Assessment Results",
+    stressLevel: dataToSave.finalResults.stressLevel,
+    score: dataToSave.finalResults.score,
+    maxScore: dataToSave.finalResults.maxScore,
+    percentage: dataToSave.finalResults.percentage,
+    message: dataToSave.finalResults.message,
+    responses: dataToSave.assessmentResponses,
+    consentToContact: dataToSave.canContact,
+    timestamp: dataToSave.timestamp
+  };
+  
+  // Save one complete record to Google Sheets (includes assessment + email data)
+  saveToGoogleSheets({
+    userData: dataToSave,
+    emailData: emailData
+  }, 'complete_data');
+  
+  // Also store locally as a backup
+  try {
+    const existingData = JSON.parse(localStorage.getItem('crinkCompleteAssessmentData') || '[]');
+    existingData.push(dataToSave);
+    localStorage.setItem('crinkCompleteAssessmentData', JSON.stringify(existingData));
+    console.log('Complete assessment data saved to localStorage as backup');
+    
+    // Also save email data
+    const existingEmailData = JSON.parse(localStorage.getItem('crinkEmailData') || '[]');
+    existingEmailData.push(emailData);
+    localStorage.setItem('crinkEmailData', JSON.stringify(existingEmailData));
+  } catch (storageError) {
+    console.error('Failed to save to localStorage:', storageError);
+  }
+}
+
+// Function to save data to Google Sheets via Apps Script
+function saveToGoogleSheets(data, sheetType) {
+  // Replace this URL with your Google Apps Script Web App URL
+  const appsScriptUrl = 'REPLACE_WITH_YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL';
+  
+  // Prepare the data for sending
+  const payload = {
+    data: data,
+    sheetType: sheetType // Tells the Apps Script which sheet/tab to use
+  };
+  
+  try {
+    // Create a hidden iframe for the form target
+    const iframeId = 'hidden-form-target';
+    let iframe = document.getElementById(iframeId);
+    
+    // Create iframe if it doesn't exist
+    if (!iframe) {
+      iframe = document.createElement('iframe');
+      iframe.setAttribute('id', iframeId);
+      iframe.setAttribute('name', iframeId);
+      iframe.style.display = 'none';
+      document.body.appendChild(iframe);
+    }
+    
+    // Create a hidden form and submit it instead of using fetch (avoids CORS issues)
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = appsScriptUrl;
+    form.target = iframeId; // Submit to the hidden iframe
+    form.style.display = 'none';
+    
+    // Create a hidden input for the data
+    const inputData = document.createElement('input');
+    inputData.type = 'hidden';
+    inputData.name = 'payload';
+    inputData.value = JSON.stringify(payload);
+    form.appendChild(inputData);
+    
+    // Add the form to the document and submit it
+    document.body.appendChild(form);
+    form.submit();
+    
+    // Remove the form after submission
+    setTimeout(() => {
+      document.body.removeChild(form);
+    }, 1000);
+    
+    console.log(`Data submitted to Google Sheets (${sheetType})`);
+  } catch (error) {
+    console.error('Error saving to Google Sheets:', error);
+    console.log('Data was saved locally as backup');
+  }
+}
+
