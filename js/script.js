@@ -322,8 +322,8 @@ function restartAssessment() {
 }
 
 function redirectToTherapy() {
-  // Redirect to the therapy page
-  window.location.href = "https://www.crink.app/therapy"; // Replace with your actual therapy page URL
+  // Open the therapy page in a new tab
+  window.open("https://www.crink.app/therapy", "_blank"); // Opens in a new tab/window
 }
 
 function saveUserDataToExcel(name, email, phone) {
