@@ -301,7 +301,7 @@ function saveCompleteData(data) {
     userData.finalResults.stressLevel,
     userData.finalResults.percentage,
     userData.finalResults.message,
-    'Sent', // Email status
+    emailData.sendMail ? 'Sent' : 'Not Sent', // Email status
     JSON.stringify(userData.assessmentResponses) // All responses as JSON
   ];
   
@@ -309,11 +309,13 @@ function saveCompleteData(data) {
   sheet.appendRow(record);
   
   // Since this includes email data, try to send the email too
-  try {
-    sendEmailWithData(emailData);
-  } catch (error) {
-    console.error("Failed to send email: " + error.message);
-    // Continue anyway, data is saved
+  if (emailData.sendMail) {
+    try {
+      sendEmailWithData(emailData);
+    } catch (error) {
+      console.error("Failed to send email: " + error.message);
+      // Continue anyway, data is saved
+    }
   }
 }
 

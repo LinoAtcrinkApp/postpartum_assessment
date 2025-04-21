@@ -166,85 +166,85 @@ function showResult() {
     popupBox.insertBefore(spacer, existingButton);
   }
   
-  function submitEmail() {
-    const email = document.getElementById("user-email").value;
-    const consent = document.getElementById("consent-checkbox").checked;
+function submitEmail() {
+  const email = document.getElementById("user-email").value;
+  const consent = document.getElementById("consent-checkbox").checked;
+
+  if (!email) {
+    alert("Oops! Please enter your email so we can send the results ✉️");
+    return;
+  }
   
-    if (!email) {
-      alert("Oops! Please enter your email so we can send the results ✉️");
-      return;
-    }
-    
-    // Update userData with latest values
-    userData.email = email;
-    userData.canContact = consent;
-    
-    // Show a loading message
-    const popupBox = document.querySelector(".popup-box");
-    const originalContent = popupBox.innerHTML;
+  // Update userData with latest values
+  userData.email = email;
+  userData.canContact = consent;
+  
+  // Show a loading message
+  const popupBox = document.querySelector(".popup-box");
+  const originalContent = popupBox.innerHTML;
+  popupBox.innerHTML = `
+    <h2>Sending Results...</h2>
+    <p>Please wait while we email your results.</p>
+  `;
+  
+  // Calculate and store results in userData
+  calculateAndStoreResults();
+  
+  // Save complete assessment data to Google Sheets
+  saveCompleteAssessmentData(userData);
+  
+  // Simulate email sending
+  setTimeout(() => {
+    // Update popup to show success message with working continue button
     popupBox.innerHTML = `
-      <h2>Sending Results...</h2>
-      <p>Please wait while we email your results.</p>
+      <h2>Results Sent! 📧</h2>
+      <p>Check your inbox at ${email} for your stress assessment results.</p>
+      <button id="continue-to-results" class="btn view-results-btn">Continue to Results</button>
     `;
     
-    // Calculate and store results in userData
-    calculateAndStoreResults();
-    
-    // Save complete assessment data to Google Sheets
-    saveCompleteAssessmentData(userData);
-    
-    // Simulate email sending
-    setTimeout(() => {
-      // Update popup to show success message with working continue button
-      popupBox.innerHTML = `
-        <h2>Results Sent! 📧</h2>
-        <p>Check your inbox at ${email} for your stress assessment results.</p>
-        <button id="continue-to-results" class="btn view-results-btn">Continue to Results</button>
-      `;
-      
-      // Add event listener to the new button
-      document.getElementById("continue-to-results").addEventListener("click", function() {
-        displayResultsDirectly();
-      });
-    }, 1500);
+    // Add event listener to the new button
+    document.getElementById("continue-to-results").addEventListener("click", function() {
+      displayResultsDirectly();
+    });
+  }, 1500);
+}
+
+function calculateAndStoreResults() {
+  // Calculate the same results as shown in the UI
+  const maxPossibleScore = totalQuestions * 4;
+  
+  let resultMessage;
+  let stressLevel;
+  let progressPercentage;
+  
+  if (score <= maxPossibleScore * 0.25) {
+    resultMessage = "You're managing stress well!";
+    stressLevel = "Low Stress";
+    progressPercentage = Math.round((score / maxPossibleScore) * 100);
+  } else if (score <= maxPossibleScore * 0.5) {
+    resultMessage = "You're experiencing some stress. Try some relaxation techniques.";
+    stressLevel = "Moderate Stress";
+    progressPercentage = Math.round((score / maxPossibleScore) * 100);
+  } else {
+    resultMessage = "Your stress levels are elevated. Consider seeking support.";
+    stressLevel = "High Stress";
+    progressPercentage = Math.round((score / maxPossibleScore) * 100);
   }
   
-  function calculateAndStoreResults() {
-    // Calculate the same results as shown in the UI
-    const maxPossibleScore = totalQuestions * 4;
-    
-    let resultMessage;
-    let stressLevel;
-    let progressPercentage;
-    
-    if (score <= maxPossibleScore * 0.25) {
-      resultMessage = "You're managing stress well!";
-      stressLevel = "Low Stress";
-      progressPercentage = Math.round((score / maxPossibleScore) * 100);
-    } else if (score <= maxPossibleScore * 0.5) {
-      resultMessage = "You're experiencing some stress. Try some relaxation techniques.";
-      stressLevel = "Moderate Stress";
-      progressPercentage = Math.round((score / maxPossibleScore) * 100);
-    } else {
-      resultMessage = "Your stress levels are elevated. Consider seeking support.";
-      stressLevel = "High Stress";
-      progressPercentage = Math.round((score / maxPossibleScore) * 100);
-    }
-    
-    // Store all results data in userData object
-    userData.finalResults = {
-      score: score,
-      stressLevel: stressLevel,
-      message: resultMessage,
-      percentage: progressPercentage,
-      maxScore: totalQuestions * 4
-    };
-    userData.assessmentResponses = userResponses;
-    
-    return userData;
-  }
+  // Store all results data in userData object
+  userData.finalResults = {
+    score: score,
+    stressLevel: stressLevel,
+    message: resultMessage,
+    percentage: progressPercentage,
+    maxScore: totalQuestions * 4
+  };
+  userData.assessmentResponses = userResponses;
   
-  function displayResultsDirectly() {
+  return userData;
+}
+
+function displayResultsDirectly() {
     // Get the updated consent value from the popup if it exists
     let updatedConsent = false;
     let updatedEmail = userData.email; // Default to stored value
@@ -268,10 +268,10 @@ function showResult() {
     // Calculate and store all results
     calculateAndStoreResults();
     
-    // When skipping, only save basic user data to Google Sheets
+    // When skipping, don't email results
     if (!document.getElementById("continue-to-results")) {
       // This means we're coming from skip button, not from email submission
-      saveUserDataToExcel(userData.name, userData.email, userData.phone);
+      saveCompleteAssessmentData(userData, false);
     }
     
     // Hide popup and display results in a separate "page"
@@ -326,32 +326,8 @@ function redirectToTherapy() {
   window.open("https://www.crink.app/therapy", "_blank"); // Opens in a new tab/window
 }
 
-function saveUserDataToExcel(name, email, phone) {
-  // Create the data object with just the basic user information
-  const userData = {
-    name: name,
-    email: email,
-    phone: phone,
-    canContact: document.getElementById("contact-consent").checked,
-    timestamp: new Date().toISOString()
-  };
-  
-  // Save to Google Sheets via Apps Script
-  saveToGoogleSheets(userData, 'user_data');
-  
-  // Also store locally as a backup
-  try {
-    const existingData = JSON.parse(localStorage.getItem('crinkUserData') || '[]');
-    existingData.push(userData);
-    localStorage.setItem('crinkUserData', JSON.stringify(existingData));
-    console.log('User data saved to localStorage as backup');
-  } catch (storageError) {
-    console.error('Failed to save to localStorage:', storageError);
-  }
-}
-
 // New function to save complete assessment data
-function saveCompleteAssessmentData(completeUserData) {
+function saveCompleteAssessmentData(completeUserData, sendMail = true) {
   console.log("Complete user assessment data:", completeUserData);
   
   // Add timestamp
@@ -374,7 +350,8 @@ function saveCompleteAssessmentData(completeUserData) {
     message: dataToSave.finalResults.message,
     responses: dataToSave.assessmentResponses,
     consentToContact: dataToSave.canContact,
-    timestamp: dataToSave.timestamp
+    timestamp: dataToSave.timestamp,
+    sendMail: sendMail
   };
   
   // Save one complete record to Google Sheets (includes assessment + email data)
