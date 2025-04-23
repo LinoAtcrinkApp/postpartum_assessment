@@ -348,7 +348,6 @@ function saveCompleteAssessmentData(completeUserData, sendMail = true) {
     maxScore: dataToSave.finalResults.maxScore,
     percentage: dataToSave.finalResults.percentage,
     message: dataToSave.finalResults.message,
-    responses: dataToSave.assessmentResponses,
     consentToContact: dataToSave.canContact,
     timestamp: dataToSave.timestamp,
     sendMail: sendMail
