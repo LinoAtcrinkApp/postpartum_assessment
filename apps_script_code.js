@@ -196,16 +196,6 @@ function getOrCreateSheet(sheetName) {
 
 // Helper function to create HTML email content
 function createEmailHtml(data) {
-  let responsesHtml = '';
-  
-  if (data.responses && data.responses.length > 0) {
-    responsesHtml += '<h3>Your Responses:</h3><ul>';
-    data.responses.forEach(response => {
-      responsesHtml += `<li><strong>Q: ${response.question}</strong><br>A: ${response.answer} (${response.points} points)</li>`;
-    });
-    responsesHtml += '</ul>';
-  }
-  
   return `
     <html>
       <head>
@@ -237,8 +227,6 @@ function createEmailHtml(data) {
             <div class="score">
               <strong>Your Score:</strong> ${data.score} out of ${data.maxScore} (${data.percentage}%)
             </div>
-            
-            ${responsesHtml}
             
             <p>If you'd like to discuss these results or explore ways to manage stress, our team is here to help.</p>
             <p>Best regards,<br>The Crink Team</p>
@@ -335,7 +323,6 @@ function ensureHeadersExist(sheet) {
       'Percentage',
       'Message',
       'Email Status',
-      'Response Data'
     ]);
   }
 }
