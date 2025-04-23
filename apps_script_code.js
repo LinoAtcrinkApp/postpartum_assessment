@@ -232,7 +232,9 @@ function createEmailHtml(data) {
             <p>Best regards,<br>The Crink Team</p>
           </div>
           <div class="footer">
-            <p>This email was sent to ${data.email} because you requested your assessment results.</p>
+            <p>This email was sent to ${data.email} because you requested your assessment results.<br>
+            Visit us at <a href="https://crink.app/therapy" target="_blank" style="color: #614ad3;">crink.app</a></p>
+
             ${data.consentToContact ? '<p>You have consented to be contacted by our team for follow-up.</p>' : ''}
           </div>
         </div>

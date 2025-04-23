@@ -222,7 +222,7 @@ function calculateAndStoreResults() {
     stressLevel = "Low Stress";
     progressPercentage = Math.round((score / maxPossibleScore) * 100);
   } else if (score <= maxPossibleScore * 0.5) {
-    resultMessage = "You're experiencing some stress. Try some relaxation techniques.";
+    resultMessage = "You're experiencing some stress. Relaxation techniques would be helpful.";
     stressLevel = "Moderate Stress";
     progressPercentage = Math.round((score / maxPossibleScore) * 100);
   } else {
@@ -297,7 +297,7 @@ function displayResultsDirectly() {
         </div>
         <p class="result-message">${userData.finalResults.message}</p>
         <p class="score-display">Total Score: ${userData.finalResults.score} out of ${userData.finalResults.maxScore}</p>
-        <button onclick="redirectToTherapy()" class="btn restart-btn">Start Therapy Now</button>
+        <button onclick="redirectToTherapy()" class="btn restart-btn">Start therapy to know more</button>
       </div>
     `;
     
