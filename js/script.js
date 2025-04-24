@@ -378,7 +378,7 @@ function saveCompleteAssessmentData(completeUserData, sendMail = true) {
 // Function to save data to Google Sheets via Apps Script
 function saveToGoogleSheets(data, sheetType) {
   // Replace this URL with your Google Apps Script Web App URL
-  const appsScriptUrl = 'https://script.google.com/macros/s/AKfycbw2Z-cs9fN5QjKYgjmK2eni7auZuCFftGhw425-A7x3WZ4gUz0J7yfwOXxgtV8kE3Pl/exec';
+  const appsScriptUrl = 'https://script.google.com/macros/s/AKfycbx2ZeCbTOuBthxxmP1enx8x9CLdXzLdjN8RJdadH7LVLBEAYePTADgkMiVXT3aUAdsW/exec';
   
   // Prepare the data for sending
   const payload = {
