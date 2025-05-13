@@ -78,6 +78,7 @@ function saveToSingleSheet(data, dataType) {
       'Name',
       'Email',
       'Phone',
+      'Profession',
       'Consent to Contact',
       'Score',
       'Max Score',
@@ -96,6 +97,7 @@ function saveToSingleSheet(data, dataType) {
     data.name || '',
     data.email || '',
     data.phone || '',
+    data.profession || '',
     (data.canContact || data.consentToContact) ? 'Yes' : 'No',
   ];
   
@@ -216,6 +218,7 @@ function createEmailHtml(data) {
           </div>
           <div class="content">
             <p>Hello ${data.name},</p>
+            ${data.profession ? `<p><strong>Profession:</strong> ${data.profession}</p>` : ''}
             <p>Thank you for completing the Crink Stress Assessment. Here are your results:</p>
             
             <div class="result">
@@ -318,6 +321,7 @@ function ensureHeadersExist(sheet) {
       'Name',
       'Email',
       'Phone',
+      'Profession',
       'Consent to Contact',
       'Score',
       'Max Score',

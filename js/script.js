@@ -5,6 +5,7 @@ let userData = {
   name: "",
   email: "",
   phone: "",
+  profession: "", // Added profession field
   canContact: false,
   assessmentResponses: [],
   finalResults: {
@@ -36,6 +37,9 @@ function startAssessment() {
   const nameInput = document.getElementById("user-name");
   const emailInput = document.getElementById("user-email-initial");
   const phoneInput = document.getElementById("user-phone");
+  const professionInput = document.getElementById("Profession");
+  
+  console.log(professionInput.value);
   
   if (!nameInput.value.trim()) {
     alert("Please enter your name to continue.");
@@ -55,14 +59,21 @@ function startAssessment() {
     return;
   }
   
+  if (!professionInput.value.trim()) {
+    alert("Please enter your profession to continue.");
+    professionInput.focus();
+    return;
+  }
+  
   // Store user data
   userData.name = nameInput.value.trim();
   userData.email = emailInput.value.trim();
   userData.phone = phoneInput.value.trim();
+  userData.profession = professionInput.value.trim();
   userData.canContact = document.getElementById("contact-consent").checked;
   
   // Store initial data locally (don't save to Google Sheets yet)
-  storeUserDataLocally(userData.name, userData.email, userData.phone, userData.canContact);
+  storeUserDataLocally(userData.name, userData.email, userData.phone, userData.profession, userData.canContact);
   
   // Hide user info form and show question box
   document.getElementById("user-info-form").classList.add("hidden");
@@ -77,12 +88,13 @@ function startAssessment() {
 }
 
 // Store user data locally without sending to Google Sheets
-function storeUserDataLocally(name, email, phone, canContact) {
+function storeUserDataLocally(name, email, phone, profession, canContact) {
   // Create the data object with just the basic user information
   const userDataObj = {
     name: name,
     email: email,
     phone: phone,
+    profession: profession, // Use the profession parameter directly
     canContact: canContact,
     timestamp: new Date().toISOString()
   };
@@ -341,6 +353,7 @@ function saveCompleteAssessmentData(completeUserData, sendMail = true) {
     name: dataToSave.name,
     email: dataToSave.email,
     phone: dataToSave.phone || '',
+    profession: dataToSave.profession || '', // Added profession field
     to: dataToSave.email,
     subject: "Your Crink Stress Assessment Results",
     stressLevel: dataToSave.finalResults.stressLevel,
@@ -378,7 +391,7 @@ function saveCompleteAssessmentData(completeUserData, sendMail = true) {
 // Function to save data to Google Sheets via Apps Script
 function saveToGoogleSheets(data, sheetType) {
   // Replace this URL with your Google Apps Script Web App URL
-  const appsScriptUrl = 'https://script.google.com/macros/s/AKfycbx2ZeCbTOuBthxxmP1enx8x9CLdXzLdjN8RJdadH7LVLBEAYePTADgkMiVXT3aUAdsW/exec';
+  const appsScriptUrl = 'https://script.google.com/macros/s/AKfycbx3VFOi06QNHyPhvhBdgzs6wvunMA0yOp9lbVg9poD1mjcVRRjnfuRb6cRPCZe_pOzU/exec';
   
   // Prepare the data for sending
   const payload = {
