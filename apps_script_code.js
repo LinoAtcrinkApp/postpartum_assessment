@@ -60,7 +60,7 @@ function doGet() {
   return HtmlService.createHtmlOutput(
     '<html><body>' +
     '<h3>The Google Apps Script is working correctly.</h3>' +
-    '<p>This web app is designed to collect data from the Stress Assessment form.</p>' +
+    '<p>This web app is designed to collect data from the Postpartum Assessment form.</p>' +
     '</body></html>'
   );
 }
@@ -68,7 +68,7 @@ function doGet() {
 // Function to save all data types to a single sheet
 function saveToSingleSheet(data, dataType) {
   // Get or create the single assessment data sheet
-  const sheet = getOrCreateSheet('Stress Assessment Data');
+  const sheet = getOrCreateSheet('Postpartum Assessment Data');
   
   // Add headers if they don't exist
   if (sheet.getLastRow() === 0) {
@@ -82,7 +82,7 @@ function saveToSingleSheet(data, dataType) {
       'Consent to Contact',
       'Score',
       'Max Score',
-      'Stress Level',
+      'Assessment Level',
       'Percentage',
       'Message',
       'Email Status',
@@ -114,7 +114,7 @@ function saveToSingleSheet(data, dataType) {
     record.push(
       data.score,
       data.maxScore,
-      data.stressLevel,
+      data.assessmentLevel,
       data.percentage,
       data.message,
       'Pending' // Email status initially pending
@@ -153,7 +153,7 @@ function sendEmail(data) {
       "Your assessment results are attached in this email (requires HTML view).", // Plain text fallback
       { 
         htmlBody: htmlBody,
-        name: "Crink Stress Assessment"
+        name: "Crink Postpartum Assessment"
       }
     );
     
@@ -169,7 +169,7 @@ function sendEmail(data) {
 
 // Helper function to update email status
 function updateEmailStatus(email, status) {
-  const sheet = getOrCreateSheet('Stress Assessment Data');
+  const sheet = getOrCreateSheet('Postpartum Assessment Data');
   const dataRange = sheet.getDataRange();
   const values = dataRange.getValues();
   
@@ -214,15 +214,15 @@ function createEmailHtml(data) {
       <body>
         <div class="container">
           <div class="header">
-            <h1>Your Stress Assessment Results</h1>
+            <h1>Your Postpartum Assessment Results</h1>
           </div>
           <div class="content">
             <p>Hello ${data.name},</p>
             ${data.profession ? `<p><strong>Profession:</strong> ${data.profession}</p>` : ''}
-            <p>Thank you for completing the Crink Stress Assessment. Here are your results:</p>
+            <p>Thank you for completing the Crink Postpartum Assessment. Here are your results:</p>
             
             <div class="result">
-              <strong>${data.stressLevel}</strong>
+              <strong>${data.assessmentLevel}</strong>
             </div>
             
             <p>${data.message}</p>
@@ -231,7 +231,7 @@ function createEmailHtml(data) {
               <strong>Your Score:</strong> ${data.score} out of ${data.maxScore} (${data.percentage}%)
             </div>
             
-            <p>If you'd like to discuss these results or explore ways to manage stress, our team is here to help.</p>
+            <p>If you'd like to discuss these results or explore postpartum support options, our team is here to help.</p>
             <p>Best regards,<br>The Crink Team</p>
           </div>
           <div class="footer">
@@ -249,7 +249,7 @@ function createEmailHtml(data) {
 // Function to save basic user data only (from skip path)
 function saveUserDataOnly(data) {
   // Get or create the assessment data sheet  
-  const sheet = getOrCreateSheet('Stress Assessment Data');
+  const sheet = getOrCreateSheet('Postpartum Assessment Data');
   
   // Add headers if they don't exist
   ensureHeadersExist(sheet);
@@ -276,7 +276,7 @@ function saveCompleteData(data) {
   const emailData = data.emailData;
   
   // Get or create the assessment data sheet
-  const sheet = getOrCreateSheet('Stress Assessment Data');
+  const sheet = getOrCreateSheet('Postpartum Assessment Data');
   
   // Add headers if they don't exist
   ensureHeadersExist(sheet);
@@ -325,7 +325,7 @@ function ensureHeadersExist(sheet) {
       'Consent to Contact',
       'Score',
       'Max Score',
-      'Stress Level',
+      'Assessment Level',
       'Percentage',
       'Message',
       'Email Status',
@@ -345,7 +345,7 @@ function sendEmailWithData(data) {
     "Your assessment results are attached in this email (requires HTML view).", // Plain text fallback
     { 
       htmlBody: htmlBody,
-      name: "Crink Stress Assessment"
+      name: "Crink Postpartum Assessment"
     }
   );
   

@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Stress Assessment</title>
+  <title>Postpartum Assessment</title>
   <link rel="stylesheet" href="style/style.css" />
 </head>
 <body>
   <div class="assessment-wrapper">
     <div id="user-info-form">
-      <h2>Welcome to the Stress Assessment</h2>
+      <h2>Welcome to the Postpartum Assessment</h2>
       <p>Please provide your information to start:</p>
       <div class="form-group">
         <label for="user-name">Let us know your name</label>
@@ -27,12 +27,6 @@
         <label for="Profession">Profession</label>
         <input type="text" id="Profession" placeholder="Your profession" required />
       </div>
-      <div class="form-group checkbox-group">
-        <label class="checkbox-label">
-          <input type="checkbox" id="contact-consent" />
-          Crink can call me.
-        </label>
-      </div>
       <button id="start-assessment" class="btn">Start Assessment</button>
     </div>
 
@@ -43,7 +37,7 @@
     </div>
 
     <div id="result-box" class="hidden">
-      <h2>Your Stress Level:</h2>
+      <h2>Your Postpartum Assessment Results:</h2>
       <p id="result-text"></p>
       <button onclick="restartAssessment()" class="btn">Retake Assessment</button>
     </div>

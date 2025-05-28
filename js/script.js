@@ -10,7 +10,7 @@ let userData = {
   assessmentResponses: [],
   finalResults: {
     score: 0,
-    stressLevel: "",
+    assessmentLevel: "",
     message: "",
     percentage: 0
   }
@@ -70,7 +70,7 @@ function startAssessment() {
   userData.email = emailInput.value.trim();
   userData.phone = phoneInput.value.trim();
   userData.profession = professionInput.value.trim();
-  userData.canContact = document.getElementById("contact-consent").checked;
+  userData.canContact = false; // Default to false since checkbox was removed
   
   // Store initial data locally (don't save to Google Sheets yet)
   storeUserDataLocally(userData.name, userData.email, userData.phone, userData.profession, userData.canContact);
@@ -210,7 +210,7 @@ function submitEmail() {
     // Update popup to show success message with working continue button
     popupBox.innerHTML = `
       <h2>Results Sent! 📧</h2>
-      <p>Check your inbox at ${email} for your stress assessment results.</p>
+      <p>Check your inbox at ${email} for your postpartum assessment results.</p>
       <button id="continue-to-results" class="btn view-results-btn">Continue to Results</button>
     `;
     
@@ -226,27 +226,27 @@ function calculateAndStoreResults() {
   const maxPossibleScore = totalQuestions * 4;
   
   let resultMessage;
-  let stressLevel;
+  let assessmentLevel;
   let progressPercentage;
   
   if (score <= maxPossibleScore * 0.25) {
-    resultMessage = "You're managing stress well!";
-    stressLevel = "Low Stress";
+    resultMessage = "Your postpartum wellbeing looks good!";
+    assessmentLevel = "Low Risk";
     progressPercentage = Math.round((score / maxPossibleScore) * 100);
   } else if (score <= maxPossibleScore * 0.5) {
-    resultMessage = "You're experiencing some stress. Relaxation techniques would be helpful.";
-    stressLevel = "Moderate Stress";
+    resultMessage = "You're experiencing some postpartum symptoms. Self-care and support from loved ones would be helpful.";
+    assessmentLevel = "Moderate Risk";
     progressPercentage = Math.round((score / maxPossibleScore) * 100);
   } else {
-    resultMessage = "Your stress levels are elevated. Consider seeking support.";
-    stressLevel = "High Stress";
+    resultMessage = "Your postpartum symptoms are more significant. We recommend seeking professional support.";
+    assessmentLevel = "High Risk";
     progressPercentage = Math.round((score / maxPossibleScore) * 100);
   }
   
   // Store all results data in userData object
   userData.finalResults = {
     score: score,
-    stressLevel: stressLevel,
+    assessmentLevel: assessmentLevel,
     message: resultMessage,
     percentage: progressPercentage,
     maxScore: totalQuestions * 4
@@ -300,16 +300,16 @@ function displayResultsDirectly() {
     // Populate the results page with progress indicator (no download buttons)
     resultsPage.innerHTML = `
       <div class="results-container">
-        <h2>Your Stress Assessment Results</h2>
-        <div class="stress-level-display">
-          <h3>${userData.finalResults.stressLevel}</h3>
+        <h2>Your Postpartum Assessment Results</h2>
+        <div class="assessment-level-display">
+          <h3>${userData.finalResults.assessmentLevel}</h3>
           <div class="progress-container">
             <div class="progress-bar" style="width: ${userData.finalResults.percentage}%"></div>
           </div>
         </div>
         <p class="result-message">${userData.finalResults.message}</p>
         <p class="score-display">Total Score: ${userData.finalResults.score} out of ${userData.finalResults.maxScore}</p>
-        <button onclick="redirectToTherapy()" class="btn restart-btn">Start therapy to know more</button>
+        <button onclick="redirectToTherapy()" class="btn restart-btn">Speak with a postpartum specialist</button>
       </div>
     `;
     
@@ -355,8 +355,8 @@ function saveCompleteAssessmentData(completeUserData, sendMail = true) {
     phone: dataToSave.phone || '',
     profession: dataToSave.profession || '', // Added profession field
     to: dataToSave.email,
-    subject: "Your Crink Stress Assessment Results",
-    stressLevel: dataToSave.finalResults.stressLevel,
+    subject: "Your Crink Postpartum Assessment Results",
+    assessmentLevel: dataToSave.finalResults.assessmentLevel,
     score: dataToSave.finalResults.score,
     maxScore: dataToSave.finalResults.maxScore,
     percentage: dataToSave.finalResults.percentage,
@@ -391,7 +391,7 @@ function saveCompleteAssessmentData(completeUserData, sendMail = true) {
 // Function to save data to Google Sheets via Apps Script
 function saveToGoogleSheets(data, sheetType) {
   // Replace this URL with your Google Apps Script Web App URL
-  const appsScriptUrl = 'https://script.google.com/macros/s/AKfycbx3VFOi06QNHyPhvhBdgzs6wvunMA0yOp9lbVg9poD1mjcVRRjnfuRb6cRPCZe_pOzU/exec';
+  const appsScriptUrl = 'https://script.google.com/macros/s/AKfycbyWTAhla44u2_iAiTCfqItGiALD50bvp0M1Tg7yb3Vvg5chsWbNXj0sWA6fwzMtwfsN9Q/exec';
   
   // Prepare the data for sending
   const payload = {

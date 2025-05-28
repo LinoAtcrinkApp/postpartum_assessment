@@ -116,7 +116,7 @@ app.post('/api/send-assessment-results', async (req, res) => {
     // Create HTML content for email
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
-        <h1 style="color: #614ad3; text-align: center;">Your Stress Assessment Results</h1>
+        <h1 style="color: #614ad3; text-align: center;">Your Postpartum Assessment Results</h1>
         
         <div style="background-color: #f8f8f8; padding: 20px; border-radius: 8px; margin: 20px 0;">
           <h2 style="color: #614ad3; margin-top: 0;">${stressLevel}</h2>
