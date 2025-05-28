@@ -106,7 +106,7 @@ function saveToSingleSheet(data, dataType) {
     record.push(
       data.finalResults.score,
       data.finalResults.maxScore,
-      data.finalResults.stressLevel,
+      data.finalResults.assessmentLevel,
       data.finalResults.percentage,
       data.finalResults.message
     );
@@ -261,6 +261,7 @@ function saveUserDataOnly(data) {
     data.name || '',
     data.email || '',
     data.phone || '',
+    data.profession || '', // Added missing profession field
     data.canContact ? 'Yes' : 'No',
     '', '', '', '', '', '', '' // Empty fields for the assessment data
   ];
@@ -288,10 +289,11 @@ function saveCompleteData(data) {
     userData.name || '',
     userData.email || '',
     userData.phone || '',
+    userData.profession || '', // Adding profession field that was missing
     userData.canContact ? 'Yes' : 'No',
     userData.finalResults.score,
     userData.finalResults.maxScore,
-    userData.finalResults.stressLevel,
+    userData.finalResults.assessmentLevel, // Fixed: using assessmentLevel instead of stressLevel
     userData.finalResults.percentage,
     userData.finalResults.message,
     emailData.sendMail ? 'Sent' : 'Not Sent', // Email status
