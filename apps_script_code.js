@@ -79,7 +79,6 @@ function saveToSingleSheet(data, dataType) {
       'Email',
       'Phone',
       'Profession',
-      'Consent to Contact',
       'Score',
       'Max Score',
       'Assessment Level',
@@ -97,8 +96,7 @@ function saveToSingleSheet(data, dataType) {
     data.name || '',
     data.email || '',
     data.phone || '',
-    data.profession || '',
-    (data.canContact || data.consentToContact) ? 'Yes' : 'No',
+    data.profession || ''
   ];
   
   // Add score-related fields if present
@@ -248,67 +246,90 @@ function createEmailHtml(data) {
 
 // Function to save basic user data only (from skip path)
 function saveUserDataOnly(data) {
-  // Get or create the assessment data sheet  
-  const sheet = getOrCreateSheet('Postpartum Assessment Data');
-  
-  // Add headers if they don't exist
-  ensureHeadersExist(sheet);
-  
-  // Create a base record with user data only
-  let record = [
-    data.timestamp || new Date().toISOString(),
-    'user_data_only', // Mark this as user data only (skip path)
-    data.name || '',
-    data.email || '',
-    data.phone || '',
-    data.canContact ? 'Yes' : 'No',
-    '', '', '', '', '', '', '' // Empty fields for the assessment data
-  ];
-  
-  // Append the row
-  sheet.appendRow(record);
+  try {
+    // Get or create the assessment data sheet  
+    const sheet = getOrCreateSheet('Postpartum Assessment Data');
+    
+    // Add headers if they don't exist
+    ensureHeadersExist(sheet);
+    
+    // Debug log to check the data being received
+    console.log('Saving user data only:', data);
+    
+    // Create a base record with user data only
+    let record = [
+      data.timestamp || new Date().toISOString(),
+      'user_data_only', // Mark this as user data only (skip path)
+      data.name || '',
+      data.email || '',
+      data.phone || '',
+      data.profession || '', // This should now be properly included
+      '', '', '', '', '', '', '' // Empty fields for the assessment data
+    ];
+    
+    // Append the row
+    sheet.appendRow(record);
+    return true;
+  } catch (error) {
+    console.error('Error in saveUserDataOnly:', error);
+    return false;
+  }
 }
 
 // Function to save complete data (user chose to email results)
 function saveCompleteData(data) {
-  // Get the user and email data components
-  const userData = data.userData;
-  const emailData = data.emailData;
-  
-  // Get or create the assessment data sheet
-  const sheet = getOrCreateSheet('Postpartum Assessment Data');
-  
-  // Add headers if they don't exist
-  ensureHeadersExist(sheet);
-  
-  // Create a complete record with all available data
-  let record = [
-    userData.timestamp || new Date().toISOString(),
-    'complete_data', // Mark this as complete data (email path)
-    userData.name || '',
-    userData.email || '',
-    userData.phone || '',
-    userData.canContact ? 'Yes' : 'No',
-    userData.finalResults.score,
-    userData.finalResults.maxScore,
-    userData.finalResults.stressLevel,
-    userData.finalResults.percentage,
-    userData.finalResults.message,
-    emailData.sendMail ? 'Sent' : 'Not Sent', // Email status
-    JSON.stringify(userData.assessmentResponses) // All responses as JSON
-  ];
-  
-  // Append the row
-  sheet.appendRow(record);
-  
-  // Since this includes email data, try to send the email too
-  if (emailData.sendMail) {
-    try {
-      sendEmailWithData(emailData);
-    } catch (error) {
-      console.error("Failed to send email: " + error.message);
-      // Continue anyway, data is saved
+  try {
+    // Get the user and email data components with proper null checks
+    const userData = data.userData || {};
+    const emailData = data.emailData || {};
+    const finalResults = userData.finalResults || {};
+    
+    // Get or create the assessment data sheet
+    const sheet = getOrCreateSheet('Postpartum Assessment Data');
+    
+    // Add headers if they don't exist
+    ensureHeadersExist(sheet);
+    
+    // Debug log to check the data being received
+    console.log('Saving complete data:', {
+      userData: userData,
+      emailData: emailData
+    });
+    
+    // Create a complete record with all available data
+    let record = [
+      userData.timestamp || new Date().toISOString(),
+      'complete_data', // Mark this as complete data (email path)
+      userData.name || '',
+      userData.email || '',
+      userData.phone || '',
+      userData.profession || '', // This should now be properly included
+      finalResults.score || 0,
+      finalResults.maxScore || 0,
+      finalResults.stressLevel || '',
+      finalResults.percentage || 0,
+      finalResults.message || '',
+      emailData.sendMail ? 'Sent' : 'Not Sent', // Email status
+      userData.assessmentResponses ? JSON.stringify(userData.assessmentResponses) : '[]' // All responses as JSON
+    ];
+    
+    // Append the row
+    sheet.appendRow(record);
+    
+    // Since this includes email data, try to send the email too
+    if (emailData.sendMail) {
+      try {
+        sendEmailWithData(emailData);
+      } catch (error) {
+        console.error("Failed to send email: " + error.message);
+        // Continue anyway, data is saved
+      }
     }
+    
+    return true;
+  } catch (error) {
+    console.error('Error in saveCompleteData:', error);
+    return false;
   }
 }
 
@@ -322,13 +343,12 @@ function ensureHeadersExist(sheet) {
       'Email',
       'Phone',
       'Profession',
-      'Consent to Contact',
       'Score',
       'Max Score',
       'Assessment Level',
       'Percentage',
       'Message',
-      'Email Status',
+      'Email Status'
     ]);
   }
 }
