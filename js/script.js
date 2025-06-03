@@ -320,7 +320,7 @@ function restartAssessment() {
 
 function redirectToTherapy() {
   // Open the therapy page in a new tab
-  window.open("https://www.crink.app/therapy", "_blank"); // Opens in a new tab/window
+  window.open("https://www.crink.app/post-partum", "_blank"); // Opens in a new tab/window
 }
 
 // New function to save complete assessment data
