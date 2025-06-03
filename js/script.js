@@ -5,8 +5,7 @@ let userData = {
   name: "",
   email: "",
   phone: "",
-  profession: "", // Added profession field
-  canContact: false,
+  profession: "", 
   assessmentResponses: [],
   finalResults: {
     score: 0,
@@ -70,10 +69,9 @@ function startAssessment() {
   userData.email = emailInput.value.trim();
   userData.phone = phoneInput.value.trim();
   userData.profession = professionInput.value.trim();
-  userData.canContact = false; // Default to false since checkbox was removed
   
   // Store initial data locally (don't save to Google Sheets yet)
-  storeUserDataLocally(userData.name, userData.email, userData.phone, userData.profession, userData.canContact);
+  storeUserDataLocally(userData.name, userData.email, userData.phone, userData.profession);
   
   // Hide user info form and show question box
   document.getElementById("user-info-form").classList.add("hidden");
@@ -81,33 +79,29 @@ function startAssessment() {
   
   // Pre-fill email in the results popup
   document.getElementById("user-email").value = userData.email;
-  document.getElementById("consent-checkbox").checked = userData.canContact;
   
   // Start the assessment
   showQuestion();
 }
 
 // Store user data locally without sending to Google Sheets
-function storeUserDataLocally(name, email, phone, profession, canContact) {
+function storeUserDataLocally(name, email, phone, profession) {
   // Create the data object with just the basic user information
   const userDataObj = {
     name: name,
     email: email,
     phone: phone,
-    profession: profession, // Use the profession parameter directly
-    canContact: canContact,
-    timestamp: new Date().toISOString()
+    profession: profession,
+    timestamp: new Date().toISOString(),
+    score: 0,
+    responses: []
   };
   
-  // Store locally as a backup
-  try {
-    const existingData = JSON.parse(localStorage.getItem('crinkUserData') || '[]');
-    existingData.push(userDataObj);
-    localStorage.setItem('crinkUserData', JSON.stringify(existingData));
-    console.log('User data saved to localStorage');
-  } catch (storageError) {
-    console.error('Failed to save to localStorage:', storageError);
-  }
+  // Store in localStorage
+  localStorage.setItem('userData', JSON.stringify(userDataObj));
+  
+  // Also store in memory
+  userData = userDataObj;
 }
 
 function showQuestion() {
@@ -180,7 +174,6 @@ function showResult() {
   
 function submitEmail() {
   const email = document.getElementById("user-email").value;
-  const consent = document.getElementById("consent-checkbox").checked;
 
   if (!email) {
     alert("Oops! Please enter your email so we can send the results ✉️");
@@ -189,7 +182,6 @@ function submitEmail() {
   
   // Update userData with latest values
   userData.email = email;
-  userData.canContact = consent;
   
   // Show a loading message
   const popupBox = document.querySelector(".popup-box");
@@ -258,24 +250,17 @@ function calculateAndStoreResults() {
 
 function displayResultsDirectly() {
     // Get the updated consent value from the popup if it exists
-    let updatedConsent = false;
     let updatedEmail = userData.email; // Default to stored value
     
-    const consentCheckbox = document.getElementById("consent-checkbox");
     const emailInput = document.getElementById("user-email");
     
     // Only update if elements exist (they might not if coming directly from skip button)
-    if (consentCheckbox) {
-      updatedConsent = consentCheckbox.checked;
-    }
-    
     if (emailInput && emailInput.value) {
       updatedEmail = emailInput.value;
     }
     
     // Update userData with latest values
     userData.email = updatedEmail;
-    userData.canContact = updatedConsent;
     
     // Calculate and store all results
     calculateAndStoreResults();
@@ -353,7 +338,7 @@ function saveCompleteAssessmentData(completeUserData, sendMail = true) {
     name: dataToSave.name,
     email: dataToSave.email,
     phone: dataToSave.phone || '',
-    profession: dataToSave.profession || '', // Added profession field
+    profession: dataToSave.profession || '', 
     to: dataToSave.email,
     subject: "Your Crink Postpartum Assessment Results",
     assessmentLevel: dataToSave.finalResults.assessmentLevel,
@@ -361,7 +346,6 @@ function saveCompleteAssessmentData(completeUserData, sendMail = true) {
     maxScore: dataToSave.finalResults.maxScore,
     percentage: dataToSave.finalResults.percentage,
     message: dataToSave.finalResults.message,
-    consentToContact: dataToSave.canContact,
     timestamp: dataToSave.timestamp,
     sendMail: sendMail
   };
@@ -442,4 +426,3 @@ function saveToGoogleSheets(data, sheetType) {
     console.log('Data was saved locally as backup');
   }
 }
-

@@ -301,23 +301,6 @@ body {
   outline: none;
 }
 
-.checkbox-group {
-  display: flex;
-  align-items: center;
-}
-
-.checkbox-label {
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-}
-
-.checkbox-label input[type="checkbox"] {
-  width: auto;
-  margin-right: 10px;
-  cursor: pointer;
-}
-
 #start-assessment {
   background-color: #614ad3;
   color: white;
